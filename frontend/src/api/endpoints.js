@@ -14,19 +14,26 @@ axios.defaults.withCredentials = true;
 
 export const login = async (username, password) => {
     try {
+        // Send POST request to the backend with username and password
         const response = await axios.post(
             LOGIN_URL, 
-            { username, password },  // Object shorthand for cleaner syntax
-            { withCredentials: true }  // Ensures cookies are included
+            { username, password }  // Object shorthand for cleaner syntax
         );
-        
-        // Check if the response contains a success attribute (depends on backend response structure)
-        return response.data
+
+        // Check if the response contains the expected success attribute
+        if (response.data.success) {  // Assuming you get a token on success
+            console.log("Login successful:", response.data);
+            return response.data;  // Return the data (e.g., token or user info)
+        } else {
+            console.error("Login failed: No token found in response.");
+            return false;  // Or handle in a more user-friendly way
+        }
     } catch (error) {
-        console.error("Login failed:", error);
-        return false;  // Return false or handle the error as needed
+        console.error("Login failed:", error.response?.data || error.message);
+        return false;  // Return false or a more specific error message
     }
 };
+
 
 
 export const refresh_token = async () =>{
@@ -40,15 +47,6 @@ export const refresh_token = async () =>{
         return false
     }
 }
-
-export const get_notes = async () => {
-    try{
-        const response = await axios.get(NOTES_URL, { withCredentials: true });
-        return response.data;
-    }catch(error){
-        return call_refresh(error, axios.get(NOTES_URL, { withCredentials: true }))
-    }
-};
 
 const call_refresh = async (error, func) =>{
     if(error.response && error.response.status === 401){
